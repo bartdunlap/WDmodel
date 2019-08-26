@@ -265,7 +265,7 @@ def main(inargs=None):
                     redo=redo, resume=resume,\
                     pool=pool)
 
-        param_names, samples, samples_lnprob, everyn, shape = result
+        param_names, samples, samples_lnprob, everyn, fullchain, shape = result
         ntemps, nwalkers, nprod, nparam = shape
         mcmc_params = io.copy_params(migrad_params)
 
@@ -277,6 +277,10 @@ def main(inargs=None):
         # write the result to a file
         outfile = io.get_outfile(outdir, specfile, '_result.json')
         io.write_params(mcmc_params, outfile)
+
+        # plot the MCMC chains (burnin + production)
+        viz.plot_chains(param_names, fullchain, nburnin, outdir,
+                            specfile, save=True) 
 
         # plot the MCMC output
         plot_out = viz.plot_mcmc_model(spec, phot, linedata,\
