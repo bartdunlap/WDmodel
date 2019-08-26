@@ -856,6 +856,9 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
                     bar.show(j+1)
                     j+=1
 
+        # save burn-in chain for plot
+        burnchain = sampler.chain
+
         # find the MAP position after the burnin
         samples        = sampler.flatchain
         samples_lnprob = sampler.lnprobability
@@ -1013,6 +1016,13 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
     if pool is not None:
         pool.close()
 
+    # save chains for plot
+    prodchain = sampler.chain
+    if samptype == 'ensemble':
+        fullchain = np.append(burnchain, prodchain, axis=1)  # nwalkers, niter, nparam
+    else:
+        fullchain = np.append(burnchain, prodchain, axis=2)  # ntemps, nwalkers, niter, nparam
+
     # find the MAP value after production
     map_samples = samples.reshape(ntemps, nwalkers, laststep+nprod, nparam)
     map_samples_lnprob = samples_lnprob.reshape(ntemps, nwalkers, laststep+nprod)
@@ -1030,9 +1040,10 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
     message = "Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction))
     print(message)
 
-    # return the parameter names of the chain, the positions, posterior, and the shape of the chain
-    return  free_param_names, samples, samples_lnprob, everyn, (ntemps, nwalkers, laststep+nprod, nparam)
-
+    # return the parameter names of the chain, the positions, posterior,
+    # the chain for plotting, and the shape of the chain
+    return free_param_names, samples, samples_lnprob, everyn, fullchain, \
+        (ntemps, nwalkers, laststep+nprod, nparam)
 
 def get_fit_params_from_samples(param_names, samples, samples_lnprob, params,\
         ntemps=1, nwalkers=300, nprod=1000, discard=5):
