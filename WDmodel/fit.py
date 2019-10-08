@@ -961,7 +961,7 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
     outf.flush()
 
     # since we're going to save the chain in HDF5, we don't need to save it in memory elsewhere
-    sampler_kwargs['storechain']=False
+    # sampler_kwargs['storechain']=False
 
     # run the production chain
     with progress.Bar(label="Production", expected_size=laststep+nprod, hide=False) as bar:
