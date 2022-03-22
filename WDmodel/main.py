@@ -121,6 +121,7 @@ def main(inargs=None):
     balmer    = args.balmerlines
     ndraws    = args.ndraws
     savefig   = args.savefig
+    savechains = args.savechains
 
 
     ##### SETUP #####
@@ -279,8 +280,8 @@ def main(inargs=None):
         io.write_params(mcmc_params, outfile)
 
         # plot the MCMC chains (burnin + production)
-        viz.plot_chains(param_names, fullchain, nburnin, outdir,
-                            specfile, save=True) 
+        viz.plot_chains(param_names, fullchain, nburnin, objname, outdir,
+                            specfile, savechains=savechains) 
 
         # plot the MCMC output
         plot_out = viz.plot_mcmc_model(spec, phot, linedata,\

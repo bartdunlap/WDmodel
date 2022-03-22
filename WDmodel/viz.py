@@ -681,8 +681,33 @@ def plot_mcmc_line_fit(spec, linedata, model, cont_model, draws, balmer=None):
     return fig, fig2
 
 
-def plot_chains(param_names, fullchain, nburnin, outdir, specfile, save=True):
+def plot_chains(param_names, fullchain, nburnin, objname, outdir, specfile, savechains=True):
+    """
+    Plot the chains to visually check convergance.
 
+    Parameters
+    ----------
+    param_names : array-like
+        Ordered list of free parameter names
+    fullchain : array-like
+        Un-flattened chain, including burnin and production
+    nburn : scalar
+        Number of burnin positions
+    objname : str
+        object name - used to title plots
+    outdir : str
+        controls where the plot is written
+    specfile : str
+        Used in the title, and to set the name of the ``outfile``
+    savechains : bool
+        if True, save the figure
+
+    Returns
+    -------
+    fig : :py:class:`matplotlib.figure.Figure` instance
+        The output figure containing the MCMC chains with a vertical line
+        denoting the end of burn in.
+    """
     nparam = len(param_names)
     xlen = len(fullchain[0, :, 0])
 
@@ -699,10 +724,10 @@ def plot_chains(param_names, fullchain, nburnin, outdir, specfile, save=True):
         ax.set_ylabel(param_names[i])
         ax.yaxis.set_label_coords(-0.08, 0.5)
     axes[-1].set_xlabel("MCMC Step")
-    fig.suptitle('MCMC Chains')
+    fig.suptitle('MCMC Chains: %s (%s)'%(objname, specfile))
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
 
-    if save:
+    if savechains:
         outfile = io.get_outfile(outdir, specfile, '_mcmc_chains.pdf')
         fig.savefig(outfile)
 

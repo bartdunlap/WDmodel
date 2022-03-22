@@ -198,6 +198,8 @@ def get_options(args, comm):
             help="Specify number of draws from posterior to overplot for model")
     viz.add_argument('--savefig',  required=False, action="store_true", default=False,\
             help="Save individual plots")
+    viz.add_argument('--savechains',  required=False, action="store_true", default=True,\
+            help="Save mcmc chains plot")
 
     # output options
     output = parser.add_argument_group('output', 'Output options')
