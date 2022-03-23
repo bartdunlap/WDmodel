@@ -109,10 +109,11 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
     dl   = result['dl']['value']
     rv   = result['rv']['value']
     fwhm = result['fwhm']['value']
+    shift = result['shift']['value']
 
     pixel_scale = 1./np.median(np.gradient(spec.wave))
 
-    mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, rv=rv, pixel_scale=pixel_scale)
+    mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, shift, rv=rv, pixel_scale=pixel_scale)
     smoothedmod = mod* (1./(4.*np.pi*(dl)**2.))
 
     ax_spec.plot(spec.wave, smoothedmod, color='red', linestyle='-',marker='None', label=outlabel)
@@ -231,11 +232,12 @@ def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model, covmode
         rv   = this_draw['rv']['value']
         dl   = this_draw['dl']['value']
         fwhm = this_draw['fwhm']['value']
+        shift = this_draw['shift']['value']
         fsig = this_draw['fsig']['value']
         tau  = this_draw['tau']['value']
         fw   = this_draw['fw']['value']
 
-        mod, full_mod = model._get_full_obs_model(teff, logg, av, fwhm, spec.wave,\
+        mod, full_mod = model._get_full_obs_model(teff, logg, av, fwhm, spec.wave, shift,\
                 rv=rv, pixel_scale=pixel_scale)
         smoothedmod = mod* (1./(4.*np.pi*(dl)**2.))
 

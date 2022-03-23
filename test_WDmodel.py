@@ -16,6 +16,7 @@ def main():
     AV   = 0.01
     FWHM = 3.
     WAVE = np.arange(3000., 9001., 1.)
+    SHIFT = 0.
 
     model._get_model(TEFF, LOGG, wave=WAVE, log=True)
 
@@ -25,9 +26,9 @@ def main():
     model._get_red_model(TEFF, LOGG, AV, WAVE)
     model._get_red_model(TEFF, LOGG, AV, WAVE, log=True)
 
-    model._get_obs_model(TEFF, LOGG, AV, FWHM,  WAVE, log=True)
+    model._get_obs_model(TEFF, LOGG, AV, FWHM,  WAVE, SHIFT, log=True)
     
-    _, testspec = model._get_full_obs_model(TEFF, LOGG, AV, FWHM,  WAVE, log=True)
+    _, testspec = model._get_full_obs_model(TEFF, LOGG, AV, FWHM,  WAVE, SHIFT, log=True)
 
     model._wave_test(testspec.wave[0:1])
 
