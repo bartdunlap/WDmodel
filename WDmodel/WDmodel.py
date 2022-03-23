@@ -14,6 +14,7 @@ from . import io
 import extinction
 import scipy.interpolate as spinterp
 from scipy.ndimage.filters import gaussian_filter1d
+from astropy.constants import c as _C
 from six.moves import zip
 
 __all__=['WDmodel']
@@ -422,7 +423,7 @@ class WDmodel(object):
         return mod
 
 
-    def _get_obs_model(self, teff, logg, av, fwhm, wave, shift, rv=3.1, log=False, pixel_scale=1.):
+    def _get_obs_model(self, teff, logg, av, fwhm, wave, shift, rvel, rv=3.1, log=False, pixel_scale=1.):
         """
         Returns the observed model flux given ``teff``, ``logg``, ``av``, ``rv``,
         ``fwhm`` (for Gaussian instrumental broadening) and wavelengths ``wave``
@@ -447,6 +448,8 @@ class WDmodel(object):
             Desired wavelengths at which to compute the model atmosphere flux.
         shift : float
             Linear wavelength shift in Angstroms
+        rvel : float
+            Radial velocity shift in km/s
         rv : float, optional
             The reddening law parameter, :math:`R_V`, the ration of the V band
             extinction :math:`A_V` to the reddening between the B and V bands,
@@ -466,7 +469,7 @@ class WDmodel(object):
         flux : array-like
             Interpolated model flux at ``teff``, ``logg`` with reddening parametrized
             by ``av``, ``rv`` and broadened by a Gaussian kernel defined by ``fwhm`` at
-            wavelengths ``wave`` shifted by ``shift``
+            wavelengths ``wave`` shifted by ``shift`` with radial velocity ``rvel``
 
         Notes
         -----
@@ -477,7 +480,7 @@ class WDmodel(object):
             ``shift`` is a zero-point wavelength shift. Not a velocity shift.
 
         """
-        wave = wave - shift
+        wave = wave*(1. - rvel*1000./_C.value) - shift
         mod = self._get_model(teff, logg, wave, log=log)
         if log:
             mod = 10.**mod
@@ -489,7 +492,7 @@ class WDmodel(object):
         return mod
 
 
-    def _get_full_obs_model(self, teff, logg, av, fwhm, wave, shift, rv=3.1, log=False, pixel_scale=1.):
+    def _get_full_obs_model(self, teff, logg, av, fwhm, wave, shift, rvel, rv=3.1, log=False, pixel_scale=1.):
         """
         Returns the observed model flux given ``teff``, ``logg``, ``av``, ``rv``,
         ``fwhm`` (for Gaussian instrumental broadening) at wavelengths, ``wave`` as
@@ -520,6 +523,8 @@ class WDmodel(object):
             Desired wavelengths at which to compute the model atmosphere flux.
         shift : float
             Linear wavelength shift in Angstroms
+        rvel : float
+            Radial velocity shift in km/s
         rv : float, optional
             The reddening law parameter, :math:`R_V`, the ration of the V band
             extinction :math:`A_V` to the reddening between the B and V bands,
@@ -540,6 +545,7 @@ class WDmodel(object):
             Interpolated model flux at ``teff``, ``logg`` with reddening
             parametrized by ``av``, ``rv`` and broadened by a Gaussian kernel
             defined by ``fwhm`` at wavelengths ``wave`` shifted by ``shift``
+            with radial velocity ``rvel``
         mod : :py:class:`numpy.recarray` with ``dtype=[('wave', '<f8'), ('flux', '<f8')]``
             Full model SED at ``teff``, ``logg`` with reddening parametrized by
             ``av``, ``rv``
@@ -553,8 +559,14 @@ class WDmodel(object):
             Adding ``shift`` to ``_wave`` renames the wavelengths in ``mod``
             such that the spectrum is redshifted.
             ``shift`` is a zero-point wavelength shift. Not a velocity shift.
+            The wavelength shift and radial velcity are applied to the full model
+            SED, ``mod``.  This will in most cases have only a slight effect on
+            the photometry computed from ``mod``.  For any acutaly radial velcity,
+            this will make the model photometry more accurate.  Any ``shift``
+            correcting for instrumental/reduction artifacts, however, should not
+            be applied to the model photometry, but it currently is.
         """
-        wave = wave - shift
+        wave = wave*(1. - rvel*1000./_C.value) - shift
         mod  = self._get_model(teff, logg)
         mod  = self.reddening(self._wave, mod, av, rv=rv)
         omod = np.interp(np.log10(wave), self._lwave, np.log10(mod))
@@ -565,7 +577,7 @@ class WDmodel(object):
             omod = np.log10(omod)
             mod  = np.log10(mod)
         names=str('wave,flux')
-        wout = self._wave + shift
+        wout = self._wave*(1. + rvel*1000./_C.value) + shift
         mod = np.rec.fromarrays((wout, mod), names=names)
         return omod, mod
 

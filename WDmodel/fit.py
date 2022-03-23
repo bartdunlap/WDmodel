@@ -416,8 +416,8 @@ def quick_fit_spec_model(spec, model, params):
     Does a quick fit of the spectrum to get an initial guess of the fit parameters
 
     Uses iminuit to do a rough diagonal fit - i.e. ignores covariance.
-    For simplicity, also fixed FWHM and Rv (even when set to be fit).
-    Therefore, only teff, logg, av, dl are fit for (at most).
+    For simplicity, also fixed FWHM, radial velocity, and Rv (even when set to be fit).
+    Therefore, only teff, logg, av, dl, and shift are fit for (at most).
     This isn't robust, but it's good enough for an initial guess.
 
     Parameters
@@ -458,6 +458,7 @@ def quick_fit_spec_model(spec, model, params):
     # we don't actually fit for these values
     rv   = params['rv']['value']
     fwhm = params['fwhm']['value']
+    rvel = params['rvel']['value']
 
     fix_teff = params['teff']['fixed']
     fix_logg = params['logg']['fixed']
@@ -474,7 +475,7 @@ def quick_fit_spec_model(spec, model, params):
     if dl0 is None:
         # only dl and fwhm are allowed to have None as input values
         # fwhm will get set to a default fwhm if it's None
-        mod = model._get_obs_model(teff0, logg0, av0, fwhm, spec.wave, shift0, rv=rv, pixel_scale=pixel_scale)
+        mod = model._get_obs_model(teff0, logg0, av0, fwhm, spec.wave, shift0, rvel, rv=rv, pixel_scale=pixel_scale)
         c0   = spec.flux.mean()/mod.mean()
         dl0 = (1./(4.*np.pi*c0))**0.5
 
@@ -492,7 +493,7 @@ def quick_fit_spec_model(spec, model, params):
 
     # ignore the covariance and define a simple chi2 to minimize
     def chi2(teff, logg, av, dl, shift):
-        mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, shift, rv=rv, pixel_scale=pixel_scale)
+        mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, shift, rvel, rv=rv, pixel_scale=pixel_scale)
         mod *= (1./(4.*np.pi*(dl)**2.))
         chi2 = np.sum(((spec.flux-mod)/spec.flux_err)**2.)
         return chi2
@@ -643,9 +644,10 @@ def hyper_param_guess(spec, phot, model, pbs, params):
     rv   = params['rv']['value']
     fwhm = params['fwhm']['value']
     shift = params['shift']['value']
+    rvel = params['rvel']['value']
     pixel_scale = 1./np.median(np.gradient(spec.wave))
-    _, model_spec = model._get_full_obs_model(teff, logg, av, fwhm, spec.wave, shift,\
-            rv=rv, pixel_scale=pixel_scale)
+    _, model_spec = model._get_full_obs_model(teff, logg, av, fwhm, spec.wave,\
+            shift, rvel, rv=rv, pixel_scale=pixel_scale)
 
     # update the mu guess if we don't have one, or the parameter isn't fixed
     if params['mu']['value'] is None or (not params['mu']['fixed']):
