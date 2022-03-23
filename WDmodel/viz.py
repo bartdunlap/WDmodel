@@ -74,7 +74,7 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
         facecolor='grey', alpha=0.5, interpolate=True)
     ax_spec.plot(spec.wave, spec.flux, color='black', linestyle='-', marker='None', label=specfile)
 
-    print_params = ('teff', 'logg', 'av', 'dl')
+    print_params = ('teff', 'logg', 'av', 'dl', 'shift')
     outlabel = 'Model\n'
     for param in print_params:
         val = result[param]['value']
