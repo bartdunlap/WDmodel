@@ -88,5 +88,14 @@
             -1e-25,
             1e3
         ]
+    },
+    "shift": {
+        "value": 0.0,
+        "fixed": false,
+        "scale": 1.0,
+        "bounds": [
+            -20.0,
+            20.0
+        ]
     }
 }
