@@ -74,7 +74,7 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
         facecolor='grey', alpha=0.5, interpolate=True)
     ax_spec.plot(spec.wave, spec.flux, color='black', linestyle='-', marker='None', label=specfile)
 
-    print_params = ('teff', 'logg', 'av', 'dl')
+    print_params = ('teff', 'logg', 'av', 'dl', 'shift')
     outlabel = 'Model\n'
     for param in print_params:
         val = result[param]['value']
@@ -109,10 +109,13 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
     dl   = result['dl']['value']
     rv   = result['rv']['value']
     fwhm = result['fwhm']['value']
+    shift = result['shift']['value']
+    rvel = result['rvel']['value']  
 
     pixel_scale = 1./np.median(np.gradient(spec.wave))
 
-    mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, rv=rv, pixel_scale=pixel_scale)
+    mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, shift, rvel,
+                               rv=rv, pixel_scale=pixel_scale)
     smoothedmod = mod* (1./(4.*np.pi*(dl)**2.))
 
     ax_spec.plot(spec.wave, smoothedmod, color='red', linestyle='-',marker='None', label=outlabel)
@@ -234,9 +237,11 @@ def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model, covmode
         fsig = this_draw['fsig']['value']
         tau  = this_draw['tau']['value']
         fw   = this_draw['fw']['value']
+        shift = this_draw['shift']['value']
+        rvel = this_draw['rvel']['value']
 
         mod, full_mod = model._get_full_obs_model(teff, logg, av, fwhm, spec.wave,\
-                rv=rv, pixel_scale=pixel_scale)
+                shift, rvel, rv=rv, pixel_scale=pixel_scale)
         smoothedmod = mod* (1./(4.*np.pi*(dl)**2.))
 
         res = spec.flux - smoothedmod
