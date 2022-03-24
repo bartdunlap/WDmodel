@@ -124,7 +124,7 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
         facecolor='grey', alpha=0.5, interpolate=True)
     ax_resid.plot(spec.wave, spec.flux-smoothedmod,  linestyle='-', marker=None,  color='black')
 
-    ax_resid.set_xlabel('Wavelength~(\AA)',fontproperties=font_m, ha='center')
+    ax_resid.set_xlabel(r'Wavelength ($\AA$)',fontproperties=font_m, ha='center')
     ax_spec.set_ylabel('Normalized Flux (Scale factor = {})'.format(1./scale_factor), fontproperties=font_m)
     ax_resid.set_ylabel('Fit Residual Flux', fontproperties=font_m)
     ax_spec.legend(frameon=False, prop=font_s)
@@ -298,7 +298,7 @@ def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model, covmode
         facecolor='red', alpha=0.3, interpolate=True)
 
     # label the axes
-    ax_resid.set_xlabel('Wavelength~(\AA)',fontproperties=font_m, ha='center')
+    ax_resid.set_xlabel(r'Wavelength ($\AA$)',fontproperties=font_m, ha='center')
     ax_spec.set_ylabel('Normalized Flux (Scale factor = {})'.format(1./scale_factor), fontproperties=font_m)
     ax_resid.set_ylabel('Fit Residual Flux', fontproperties=font_m)
     ax_spec.legend(frameon=False, prop=font_s)
@@ -508,7 +508,7 @@ def plot_mcmc_spectrum_nogp_fit(spec, objname, specfile, scale_factor,\
         ax_resid.plot(spec.wave[::everyn], wres[::everyn], marker='o',  color='blue', ls='None', alpha=0.5)
 
     # label the axes
-    ax_resid.set_xlabel('Wavelength~(\AA)',fontproperties=font_m, ha='center')
+    ax_resid.set_xlabel(r'Wavelength ($\AA$)',fontproperties=font_m, ha='center')
     ax_spec.set_ylabel('Normalized Flux (Scale factor = {})'.format(1./scale_factor), fontproperties=font_m)
     ax_resid.set_ylabel('Fit Residual Flux', fontproperties=font_m)
     ax_spec.legend(frameon=False, prop=font_s)
