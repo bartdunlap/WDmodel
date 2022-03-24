@@ -675,7 +675,7 @@ def plot_mcmc_line_fit(spec, linedata, model, cont_model, draws, balmer=None):
         k+=1
 
     # label the axes
-    ax_lines.set_xlabel('Delta Wavelength~(\AA)',fontproperties=font_m, ha='center')
+    ax_lines.set_xlabel(r'Delta Wavelength ($\AA$)',fontproperties=font_m, ha='center')
     ax_lines.set_ylabel('Normalized Flux', fontproperties=font_m)
 
     fig.suptitle('Line Profiles', fontproperties=font_l)
