@@ -744,6 +744,8 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
         in case we are using ``resume`` to continue the chain, and this value
         must be restored from the state file, rather than being supplied as a
         user input.
+    fullchain : array-like
+        Un-flattened chain, including burnin and production    
     shape : tuple
         Specifies the shape of the un-flattened chain.
         ``(ntemps, nwalkers, nprod, nparam)``
