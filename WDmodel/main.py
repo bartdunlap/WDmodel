@@ -92,6 +92,9 @@ def main(inargs=None):
     rescale   = args.rescale
     blotch    = args.blotch
 
+    specgrid  = args.gridfile
+    gridgroup = args.gridname
+
     outdir    = args.outdir
     outroot   = args.outroot
 
@@ -134,7 +137,7 @@ def main(inargs=None):
     print(message)
 
     # init the model
-    model = WDmodel.WDmodel(rvmodel=rvmodel)
+    model = WDmodel.WDmodel(grid_file=specgrid, grid_name=gridgroup, rvmodel=rvmodel)
 
     if not resume:
         # parse the parameter keywords in the argparse Namespace into a dictionary
