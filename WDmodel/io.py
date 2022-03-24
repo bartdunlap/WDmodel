@@ -114,6 +114,14 @@ def get_options(args, comm):
     spectrum.add_argument('--blotch', required=False, action='store_true',\
             default=False, help="Blotch the spectrum to remove gaps/cosmic rays before fitting?")
 
+    # model grid options
+    specgrid = parser.add_argument_group('Model grid', 'Grid options')
+
+    specgrid.add_argument('--gridfile', required=False, default=None,\
+            help="Specify grid of model spectra")
+    specgrid.add_argument('--gridname', required=False, default=None,\
+            help='Specify name of the group name in the HDF5 file')
+    
     # photometry options
     reddeninglaws = ('od94', 'ccm89', 'f99', 'custom')
     phot = parser.add_argument_group('photometry', 'Photometry options')
@@ -518,10 +526,8 @@ def read_model_grid(grid_file=None, grid_name=None):
 
     Notes
     -----
-        There are no easy command line options to change this deliberately
-        because changing the grid file essentially changes the entire model,
-        and should not be done lightly, without careful comparison of the grids
-        to quantify differences.
+        The grid can be changed with the '--gridfile' and '--gridname'
+        command line options.
 
     See Also
     --------
@@ -534,6 +540,9 @@ def read_model_grid(grid_file=None, grid_name=None):
     # if the user specfies a file, check that it exists, and if not look inside the package directory
     if not os.path.exists(grid_file):
         grid_file = get_pkgfile(grid_file)
+    
+    message = 'Using model grid file {} '.format(grid_file)
+    print(message)
 
     if grid_name is None:
         grid_name = "default"
