@@ -333,14 +333,14 @@ class WDmodel_Posterior(object):
             # put some weak priors on intrinsic WD  parameters
 
             # normal on teff
-            teff  = self._lnlike.get_parameter('teff')
-            teff0 = self.p0['teff']
-            out += norm.logpdf(teff, teff0, 10000.)
+            # teff  = self._lnlike.get_parameter('teff')
+            # teff0 = self.p0['teff']
+            # out += norm.logpdf(teff, teff0, 10000.)
 
             # normal on logg
-            logg  = self._lnlike.get_parameter('logg')
-            logg0 = self.p0['logg']
-            out += norm.logpdf(logg, logg0, 1.)
+            # logg  = self._lnlike.get_parameter('logg')
+            # logg0 = self.p0['logg']
+            # out += norm.logpdf(logg, logg0, 1.)
 
             # this implements the glos prior on Av
             av = self._lnlike.get_parameter('av')
