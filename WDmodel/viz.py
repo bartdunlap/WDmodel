@@ -20,6 +20,26 @@ from . import io
 from . import passband
 import corner
 from six.moves import range
+from collections import OrderedDict
+
+
+def get_plot_labels():
+    """
+    Generate dictionary of fit parameter labels for plots.
+
+    Returns
+    -------
+    labels : dict
+        dictionary of plot labels with :py:const:`WDmodel.io._PARAMETER_NAMES`
+        as keys
+    """
+    labelnames = (r'$T_{\mathrm{eff}}$', r'$\log\,g$', r'$A_{V}$', r'$R_{V}$',
+                'dl', 'fwhm', r'$f_{\sigma}$', r'$\tau$', r'$f_{\omega}$',
+                r'$\mu$', 'shift', r'$v_{r}$')
+    labels = OrderedDict()
+    for i, par in enumerate(io._PARAMETER_NAMES):
+        labels[par] = labelnames[i]
+    return labels
 
 
 def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, model, result, save=True):
@@ -61,9 +81,12 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
         setting a reasonable initial guess. If it is apparent from the plot
         that this fit is very far off, refine the initial guess to the fitter.
     """
-    font_s  = FM(size='small')
-    font_m  = FM(size='medium')
-    font_l  = FM(size='large')
+    font_s  = FM(size='small', family='serif')
+    font_m  = FM(size='medium', family='serif')
+    font_l  = FM(size='large', family='serif')
+    plt.rcParams.update({'font.family':'serif'})
+
+    labels = get_plot_labels()
 
     fig = plt.figure(figsize=(10,8))
     gs = gridspec.GridSpec(2, 1, height_ratios=[4,1])
@@ -81,9 +104,9 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
         err = result[param]['scale']
         fixed = result[param]['fixed']
         if val is None:
-            thislabel = '{} = {} '.format(param, val)
+            thislabel = '{} = {} '.format(labels[param], val)
         else:
-            thislabel = '{} = {:.3f} '.format(param, val)
+            thislabel = '{} = {:.3f} '.format(labels[param], val)
 
         if not fixed:
             thislabel += ' +/- {:.3f}'.format(err)
@@ -96,9 +119,9 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
     for param in fix_labels:
         val = result[param]['value']
         if val is None:
-            thislabel = '{} = {} '.format(param, val)
+            thislabel = '{} = {} '.format(labels[param], val)
         else:
-            thislabel = '{} = {:.3f} '.format(param, val)
+            thislabel = '{} = {:.3f} '.format(labels[param], val)
         thislabel = '[{} FIXED]'.format(thislabel)
         thislabel +='\n'
         outlabel += thislabel
@@ -124,7 +147,7 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
         facecolor='grey', alpha=0.5, interpolate=True)
     ax_resid.plot(spec.wave, spec.flux-smoothedmod,  linestyle='-', marker=None,  color='black')
 
-    ax_resid.set_xlabel('Wavelength~(\AA)',fontproperties=font_m, ha='center')
+    ax_resid.set_xlabel(r'Wavelength ($\AA$)',fontproperties=font_m, ha='center')
     ax_spec.set_ylabel('Normalized Flux (Scale factor = {})'.format(1./scale_factor), fontproperties=font_m)
     ax_resid.set_ylabel('Fit Residual Flux', fontproperties=font_m)
     ax_spec.legend(frameon=False, prop=font_s)
@@ -212,6 +235,8 @@ def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model, covmode
     font_m  = FM(size='medium')
     font_l  = FM(size='large')
 
+    labels = get_plot_labels()
+
     fig = plt.figure(figsize=(10,8))
     gs = gridspec.GridSpec(2, 1, height_ratios=[4,1])
     ax_spec  = fig.add_subplot(gs[0])
@@ -265,7 +290,7 @@ def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model, covmode
         val = result[param]['value']
         errp, errm = result[param]['errors_pm']
         fixed = result[param]['fixed']
-        thislabel = '{} = {:.3f} '.format(param, val)
+        thislabel = '{} = {:.3f} '.format(labels[param], val)
         if not fixed:
             thislabel += ' +{:.3f}/-{:.3f}'.format(errp, errm)
         else:
@@ -298,7 +323,7 @@ def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model, covmode
         facecolor='red', alpha=0.3, interpolate=True)
 
     # label the axes
-    ax_resid.set_xlabel('Wavelength~(\AA)',fontproperties=font_m, ha='center')
+    ax_resid.set_xlabel(r'Wavelength ($\AA$)',fontproperties=font_m, ha='center')
     ax_spec.set_ylabel('Normalized Flux (Scale factor = {})'.format(1./scale_factor), fontproperties=font_m)
     ax_resid.set_ylabel('Fit Residual Flux', fontproperties=font_m)
     ax_spec.legend(frameon=False, prop=font_s)
@@ -508,7 +533,7 @@ def plot_mcmc_spectrum_nogp_fit(spec, objname, specfile, scale_factor,\
         ax_resid.plot(spec.wave[::everyn], wres[::everyn], marker='o',  color='blue', ls='None', alpha=0.5)
 
     # label the axes
-    ax_resid.set_xlabel('Wavelength~(\AA)',fontproperties=font_m, ha='center')
+    ax_resid.set_xlabel(r'Wavelength ($\AA$)',fontproperties=font_m, ha='center')
     ax_spec.set_ylabel('Normalized Flux (Scale factor = {})'.format(1./scale_factor), fontproperties=font_m)
     ax_resid.set_ylabel('Fit Residual Flux', fontproperties=font_m)
     ax_spec.legend(frameon=False, prop=font_s)
@@ -675,7 +700,7 @@ def plot_mcmc_line_fit(spec, linedata, model, cont_model, draws, balmer=None):
         k+=1
 
     # label the axes
-    ax_lines.set_xlabel('Delta Wavelength~(\AA)',fontproperties=font_m, ha='center')
+    ax_lines.set_xlabel(r'Delta Wavelength ($\AA$)',fontproperties=font_m, ha='center')
     ax_lines.set_ylabel('Normalized Flux', fontproperties=font_m)
 
     fig.suptitle('Line Profiles', fontproperties=font_l)
@@ -715,6 +740,8 @@ def plot_chains(param_names, fullchain, nburnin, objname, outdir, specfile, save
     """
     nparam = len(param_names)
     xlen = len(fullchain[0, :, 0])
+    labels = get_plot_labels()
+
 
     fig, axes = plt.subplots(nparam, figsize=(8, 11), sharex=True)
     for i in range(nparam):
@@ -726,11 +753,12 @@ def plot_chains(param_names, fullchain, nburnin, objname, outdir, specfile, save
                 ax.plot(fullchain[j, :, :, i].T, "k", alpha=.2)   # ntemps, nwalkers, niter, nparam
         ax.axvline(nburnin, alpha=0.5)
         ax.set_xlim(0, xlen)
-        ax.set_ylabel(param_names[i])
+        ax.set_ylabel(labels[param_names[i]])
         ax.yaxis.set_label_coords(-0.08, 0.5)
     axes[-1].set_xlabel("MCMC Step")
     fig.suptitle('MCMC Chains: %s (%s)'%(objname, specfile))
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
+    fig.subplots_adjust(left=.15)
 
     if savechains:
         outfile = io.get_outfile(outdir, specfile, '_mcmc_chains.pdf')
@@ -833,6 +861,8 @@ def plot_mcmc_model(spec, phot, linedata, scale_factor, phot_dispersion,\
     draws     = None
     mag_draws = None
 
+    labels = get_plot_labels()
+
     outfilename = io.get_outfile(outdir, specfile, '_mcmc.pdf')
     with PdfPages(outfilename) as pdf:
         # plot spectrum and model
@@ -871,7 +901,8 @@ def plot_mcmc_model(spec, phot, linedata, scale_factor, phot_dispersion,\
         pdf.savefig(fig2)
 
         # plot corner plot
-        fig = corner.corner(samples, bins=51, labels=param_names, show_titles=True,quantiles=(0.16,0.84), smooth=1.)
+        labelfree = [labels.get(k) for k in param_names]
+        fig = corner.corner(samples, bins=51, labels=labelfree, show_titles=True,quantiles=(0.16,0.84), smooth=1.)
         if savefig:
             outfile = io.get_outfile(outdir, specfile, '_mcmc_corner.pdf')
             fig.savefig(outfile)
