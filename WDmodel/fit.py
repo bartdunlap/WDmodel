@@ -416,8 +416,8 @@ def quick_fit_spec_model(spec, model, params):
     Does a quick fit of the spectrum to get an initial guess of the fit parameters
 
     Uses iminuit to do a rough diagonal fit - i.e. ignores covariance.
-    For simplicity, also fixed FWHM and Rv (even when set to be fit).
-    Therefore, only teff, logg, av, dl are fit for (at most).
+    For simplicity, also fixed FWHM, radial velocity, and Rv (even when set to be fit).
+    Therefore, only teff, logg, av, dl, and shift are fit for (at most).
     This isn't robust, but it's good enough for an initial guess.
 
     Parameters
@@ -453,17 +453,20 @@ def quick_fit_spec_model(spec, model, params):
     logg0 = params['logg']['value']
     av0   = params['av']['value']
     dl0   = params['dl']['value']
+    shift0 = params['shift']['value']
 
     # we don't actually fit for these values
     rv   = params['rv']['value']
     fwhm = params['fwhm']['value']
+    rvel = params['rvel']['value']
 
     fix_teff = params['teff']['fixed']
     fix_logg = params['logg']['fixed']
     fix_av   = params['av']['fixed']
     fix_dl   = params['dl']['fixed']
+    fix_shift= params['shift']['fixed']
 
-    if all((fix_teff, fix_logg, fix_av, fix_dl)):
+    if all((fix_teff, fix_logg, fix_av, fix_dl, fix_shift)):
         message = "All of teff, logg, av, dl are marked as fixed - nothing to fit."
         raise RuntimeError(message)
 
@@ -472,7 +475,7 @@ def quick_fit_spec_model(spec, model, params):
     if dl0 is None:
         # only dl and fwhm are allowed to have None as input values
         # fwhm will get set to a default fwhm if it's None
-        mod = model._get_obs_model(teff0, logg0, av0, fwhm, spec.wave, rv=rv, pixel_scale=pixel_scale)
+        mod = model._get_obs_model(teff0, logg0, av0, fwhm, spec.wave, shift0, rvel, rv=rv, pixel_scale=pixel_scale)
         c0   = spec.flux.mean()/mod.mean()
         dl0 = (1./(4.*np.pi*c0))**0.5
 
@@ -480,24 +483,26 @@ def quick_fit_spec_model(spec, model, params):
     logg_scale = params['logg']['scale']
     av_scale   = params['av']['scale']
     dl_scale   = params['dl']['scale']
+    shift_scale = params['shift']['scale']
 
     teff_bounds = params['teff']['bounds']
     logg_bounds = params['logg']['bounds']
     av_bounds   = params['av']['bounds']
     dl_bounds   = params['dl']['bounds']
+    shift_bounds = params['shift']['bounds']
 
     # ignore the covariance and define a simple chi2 to minimize
-    def chi2(teff, logg, av, dl):
-        mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, rv=rv, pixel_scale=pixel_scale)
+    def chi2(teff, logg, av, dl, shift):
+        mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, shift, rvel, rv=rv, pixel_scale=pixel_scale)
         mod *= (1./(4.*np.pi*(dl)**2.))
         chi2 = np.sum(((spec.flux-mod)/spec.flux_err)**2.)
         return chi2
 
     # use minuit to refine our starting guess
-    m = Minuit(chi2, teff=teff0, logg=logg0, av=av0, dl=dl0,\
-                fix_teff=fix_teff, fix_logg=fix_logg, fix_av=fix_av, fix_dl=fix_dl,\
-                error_teff=teff_scale, error_logg=logg_scale, error_av=av_scale, error_dl=dl_scale,\
-                limit_teff=teff_bounds, limit_logg=logg_bounds, limit_av=av_bounds, limit_dl=dl_bounds,\
+    m = Minuit(chi2, teff=teff0, logg=logg0, av=av0, dl=dl0, shift=shift0,\
+                fix_teff=fix_teff, fix_logg=fix_logg, fix_av=fix_av, fix_dl=fix_dl, fix_shift=fix_shift,\
+                error_teff=teff_scale, error_logg=logg_scale, error_av=av_scale, error_dl=dl_scale, error_shift=shift_scale,\
+                limit_teff=teff_bounds, limit_logg=logg_bounds, limit_av=av_bounds, limit_dl=dl_bounds, limit_shift=shift_bounds,\
                 print_level=1, pedantic=True, errordef=1)
 
     outfnmin, outpar = m.migrad()
@@ -585,7 +590,7 @@ def fix_pos(pos, free_param_names, params):
         std    = params[name]['scale']
         # take a 5 sigma range
         lr, ur = (p0-5.*std, p0+5.*std)
-        ll = max(lb, lr, 0.)
+        ll = max(lb, lr)
         ul = min(ub, ur)
         ind = np.where((pos[:,i] <= ll) | (pos[:,i] >= ul))
         nreplace = len(pos[:,i][ind])
@@ -638,9 +643,11 @@ def hyper_param_guess(spec, phot, model, pbs, params):
     av   = params['av']['value']
     rv   = params['rv']['value']
     fwhm = params['fwhm']['value']
+    shift = params['shift']['value']
+    rvel = params['rvel']['value']
     pixel_scale = 1./np.median(np.gradient(spec.wave))
     _, model_spec = model._get_full_obs_model(teff, logg, av, fwhm, spec.wave,\
-            rv=rv, pixel_scale=pixel_scale)
+            shift, rvel, rv=rv, pixel_scale=pixel_scale)
 
     # update the mu guess if we don't have one, or the parameter isn't fixed
     if params['mu']['value'] is None or (not params['mu']['fixed']):
@@ -737,6 +744,8 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
         in case we are using ``resume`` to continue the chain, and this value
         must be restored from the state file, rather than being supplied as a
         user input.
+    fullchain : array-like
+        Un-flattened chain, including burnin and production    
     shape : tuple
         Specifies the shape of the un-flattened chain.
         ``(ntemps, nwalkers, nprod, nparam)``
@@ -856,6 +865,9 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
                     bar.show(j+1)
                     j+=1
 
+        # save burn-in chain for plot
+        burnchain = sampler.chain
+
         # find the MAP position after the burnin
         samples        = sampler.flatchain
         samples_lnprob = sampler.lnprobability
@@ -876,11 +888,8 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
             message = "{} = {:f}".format(k,v)
             print(message)
 
-        # adjust the walkers to start around the MAP position from burnin
-        pos = emcee.utils.sample_ball(p1, std, size=ntemps*nwalkers)
-        pos = fix_pos(pos, free_param_names, params)
-        if samptype != 'ensemble':
-            pos = pos.reshape(ntemps, nwalkers, nparam)
+        # set walkers to start production at final burnin state
+        pos = result[0]
 
         # setup incremental chain saving
         chain = outf.create_group("chain")
@@ -961,7 +970,7 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
     outf.flush()
 
     # since we're going to save the chain in HDF5, we don't need to save it in memory elsewhere
-    sampler_kwargs['storechain']=False
+    # sampler_kwargs['storechain']=False
 
     # run the production chain
     with progress.Bar(label="Production", expected_size=laststep+nprod, hide=False) as bar:
@@ -1016,6 +1025,13 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
     if pool is not None:
         pool.close()
 
+    # save chains for plot
+    prodchain = sampler.chain
+    if samptype == 'ensemble':
+        fullchain = np.append(burnchain, prodchain, axis=1)  # nwalkers, niter, nparam
+    else:
+        fullchain = np.append(burnchain, prodchain, axis=2)  # ntemps, nwalkers, niter, nparam
+
     # find the MAP value after production
     map_samples = samples.reshape(ntemps, nwalkers, laststep+nprod, nparam)
     map_samples_lnprob = samples_lnprob.reshape(ntemps, nwalkers, laststep+nprod)
@@ -1033,9 +1049,10 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
     message = "Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction))
     print(message)
 
-    # return the parameter names of the chain, the positions, posterior, and the shape of the chain
-    return  free_param_names, samples, samples_lnprob, everyn, (ntemps, nwalkers, laststep+nprod, nparam)
-
+    # return the parameter names of the chain, the positions, posterior,
+    # the chain for plotting, and the shape of the chain
+    return free_param_names, samples, samples_lnprob, everyn, fullchain, \
+        (ntemps, nwalkers, laststep+nprod, nparam)
 
 def get_fit_params_from_samples(param_names, samples, samples_lnprob, params,\
         ntemps=1, nwalkers=300, nprod=1000, discard=5):

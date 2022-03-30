@@ -106,10 +106,10 @@ class WDmodel_Likelihood(Model):
         if phot is None:
             phot_chi = 0.
             mod = model._get_obs_model(self.teff, self.logg, self.av, self.fwhm,\
-                    spec.wave, rv=self.rv, pixel_scale=pixel_scale)
+                    spec.wave, self.shift, self.rvel, rv=self.rv, pixel_scale=pixel_scale)
         else:
             mod, full = model._get_full_obs_model(self.teff, self.logg, self.av, self.fwhm,\
-                    spec.wave, rv=self.rv, pixel_scale=pixel_scale)
+                    spec.wave, self.shift, self.rvel, rv=self.rv, pixel_scale=pixel_scale)
             mod_mags = get_model_synmags(full, pbs, mu=self.mu)
             phot_res = phot.mag - mod_mags.mag
             phot_chi = np.sum(phot_res**2./((phot.mag_err**2.)+(phot_dispersion**2.)))
@@ -333,14 +333,14 @@ class WDmodel_Posterior(object):
             # put some weak priors on intrinsic WD  parameters
 
             # normal on teff
-            teff  = self._lnlike.get_parameter('teff')
-            teff0 = self.p0['teff']
-            out += norm.logpdf(teff, teff0, 10000.)
+            # teff  = self._lnlike.get_parameter('teff')
+            # teff0 = self.p0['teff']
+            # out += norm.logpdf(teff, teff0, 10000.)
 
             # normal on logg
-            logg  = self._lnlike.get_parameter('logg')
-            logg0 = self.p0['logg']
-            out += norm.logpdf(logg, logg0, 1.)
+            # logg  = self._lnlike.get_parameter('logg')
+            # logg0 = self.p0['logg']
+            # out += norm.logpdf(logg, logg0, 1.)
 
             # this implements the glos prior on Av
             av = self._lnlike.get_parameter('av')

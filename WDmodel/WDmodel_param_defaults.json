@@ -88,5 +88,23 @@
             -1e-25,
             1e3
         ]
+    },
+    "shift": {
+        "value": 0.0,
+        "fixed": false,
+        "scale": 1.0,
+        "bounds": [
+            -20.0,
+            20.0
+        ]
+    },
+    "rvel": {
+        "value": 0.0,
+        "fixed": true,
+        "scale": 10.0,
+        "bounds": [
+            -1000.0,
+            1000.0
+        ]
     }
 }
