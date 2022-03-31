@@ -124,7 +124,7 @@ dependencies:
     - idna==2.7
     - imagesize==1.1.0
     - jinja2==2.10
-    - markupsafe==1.0
+    - markupsafe==1.1.1
     - matplotlib==2.2.4
     - numpy==1.16.0
     - packaging==18.0
