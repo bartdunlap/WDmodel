@@ -278,9 +278,11 @@ def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model,
         fw   = this_draw['fw']['value']
         shift = this_draw['shift']['value']
         rvel = this_draw['rvel']['value']
+        length = this_draw['length']['value']
+
 
         mod, full_mod = model._get_full_obs_model(teff, logg, av, fwhm, spec.wave,\
-                shift, rvel, rv=rv, pixel_scale=pixel_scale)
+                shift, rvel, rv=rv, pixel_scale=pixel_scale, length=length)
         smoothedmod = mod* (1./(4.*np.pi*(dl)**2.))
 
         res = spec.flux - smoothedmod
@@ -304,9 +306,12 @@ def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model,
         val = result[param]['value']
         errp, errm = result[param]['errors_pm']
         fixed = result[param]['fixed']
-        thislabel = '{} = {:.3f} '.format(labels[param], val)
+        derived = result[param].get('derived', False)
+        thislabel = '{} = {:.4g} '.format(labels[param], val)
         if not fixed:
-            thislabel += ' +{:.3f}/-{:.3f}'.format(errp, errm)
+            thislabel += ' +{:.3g}/-{:.3g}'.format(errp, errm)
+            if derived:
+                thislabel = '[{} DERIVED]'.format(thislabel)
         else:
             thislabel = '[{} FIXED]'.format(thislabel)
         thislabel +='\n'
