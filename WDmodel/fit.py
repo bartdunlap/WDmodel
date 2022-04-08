@@ -454,6 +454,7 @@ def quick_fit_spec_model(spec, model, params):
     av0   = params['av']['value']
     dl0   = params['dl']['value']
     shift0 = params['shift']['value']
+    length0 = params['length']['value']
 
     # we don't actually fit for these values
     rv   = params['rv']['value']
@@ -465,9 +466,10 @@ def quick_fit_spec_model(spec, model, params):
     fix_av   = params['av']['fixed']
     fix_dl   = params['dl']['fixed']
     fix_shift= params['shift']['fixed']
+    fix_length= params['length']['fixed']
 
-    if all((fix_teff, fix_logg, fix_av, fix_dl, fix_shift)):
-        message = "All of teff, logg, av, dl are marked as fixed - nothing to fit."
+    if all((fix_teff, fix_logg, fix_av, fix_dl, fix_shift, fix_length)):
+        message = "All of teff, logg, av, dl, shift, and length are marked as fixed - nothing to fit."
         raise RuntimeError(message)
 
     pixel_scale = 1./np.median(np.gradient(spec.wave))
@@ -475,7 +477,7 @@ def quick_fit_spec_model(spec, model, params):
     if dl0 is None:
         # only dl and fwhm are allowed to have None as input values
         # fwhm will get set to a default fwhm if it's None
-        mod = model._get_obs_model(teff0, logg0, av0, fwhm, spec.wave, shift0, rvel, rv=rv, pixel_scale=pixel_scale)
+        mod = model._get_obs_model(teff0, logg0, av0, fwhm, spec.wave, shift0, rvel, rv=rv, pixel_scale=pixel_scale, length=length0)
         c0   = spec.flux.mean()/mod.mean()
         dl0 = (1./(4.*np.pi*c0))**0.5
 
@@ -484,25 +486,27 @@ def quick_fit_spec_model(spec, model, params):
     av_scale   = params['av']['scale']
     dl_scale   = params['dl']['scale']
     shift_scale = params['shift']['scale']
+    length_scale = params['length']['scale']
 
     teff_bounds = params['teff']['bounds']
     logg_bounds = params['logg']['bounds']
     av_bounds   = params['av']['bounds']
     dl_bounds   = params['dl']['bounds']
     shift_bounds = params['shift']['bounds']
+    length_bounds = params['length']['bounds']
 
     # ignore the covariance and define a simple chi2 to minimize
-    def chi2(teff, logg, av, dl, shift):
-        mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, shift, rvel, rv=rv, pixel_scale=pixel_scale)
+    def chi2(teff, logg, av, dl, shift, length):
+        mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, shift, rvel, rv=rv, pixel_scale=pixel_scale, length=length)
         mod *= (1./(4.*np.pi*(dl)**2.))
         chi2 = np.sum(((spec.flux-mod)/spec.flux_err)**2.)
         return chi2
 
     # use minuit to refine our starting guess
-    m = Minuit(chi2, teff=teff0, logg=logg0, av=av0, dl=dl0, shift=shift0,\
-                fix_teff=fix_teff, fix_logg=fix_logg, fix_av=fix_av, fix_dl=fix_dl, fix_shift=fix_shift,\
-                error_teff=teff_scale, error_logg=logg_scale, error_av=av_scale, error_dl=dl_scale, error_shift=shift_scale,\
-                limit_teff=teff_bounds, limit_logg=logg_bounds, limit_av=av_bounds, limit_dl=dl_bounds, limit_shift=shift_bounds,\
+    m = Minuit(chi2, teff=teff0, logg=logg0, av=av0, dl=dl0, shift=shift0, length=length0,\
+                fix_teff=fix_teff, fix_logg=fix_logg, fix_av=fix_av, fix_dl=fix_dl, fix_shift=fix_shift, fix_length=fix_length,\
+                error_teff=teff_scale, error_logg=logg_scale, error_av=av_scale, error_dl=dl_scale, error_shift=shift_scale, error_length=length_scale,\
+                limit_teff=teff_bounds, limit_logg=logg_bounds, limit_av=av_bounds, limit_dl=dl_bounds, limit_shift=shift_bounds, limit_length=length_bounds,\
                 print_level=1, pedantic=True, errordef=1)
 
     outfnmin, outpar = m.migrad()
@@ -644,10 +648,11 @@ def hyper_param_guess(spec, phot, model, pbs, params):
     rv   = params['rv']['value']
     fwhm = params['fwhm']['value']
     shift = params['shift']['value']
+    length = params['length']['value']
     rvel = params['rvel']['value']
     pixel_scale = 1./np.median(np.gradient(spec.wave))
     _, model_spec = model._get_full_obs_model(teff, logg, av, fwhm, spec.wave,\
-            shift, rvel, rv=rv, pixel_scale=pixel_scale)
+            shift, rvel, rv=rv, pixel_scale=pixel_scale, length=length)
 
     # update the mu guess if we don't have one, or the parameter isn't fixed
     if params['mu']['value'] is None or (not params['mu']['fixed']):
