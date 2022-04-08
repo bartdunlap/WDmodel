@@ -275,9 +275,9 @@ def main(inargs=None):
         mcmc_params = io.copy_params(migrad_params)
 
         # parse the samples in the chain and get the result
-        result = fit.get_fit_params_from_samples(param_names, samples, samples_lnprob, mcmc_params,\
-                        ntemps=ntemps, nwalkers=nwalkers, nprod=nprod, discard=discard)
-        mcmc_params, in_samp, in_lnprob = result
+        result = fit.get_fit_params_from_samples(param_names, samples, samples_lnprob, mcmc_params, model,\
+                        ntemps=ntemps, nwalkers=nwalkers, nprod=nprod, discard=discard, sptype=sptype)
+        mcmc_params, in_samp, in_lnprob, p_names = result
 
         # write the result to a file
         outfile = io.get_outfile(outdir, specfile, '_result.json')

@@ -1060,8 +1060,8 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
         (ntemps, nwalkers, laststep+nprod, nparam)
 
 
-def get_fit_params_from_samples(param_names, samples, samples_lnprob, params,\
-        ntemps=1, nwalkers=300, nprod=1000, discard=5):
+def get_fit_params_from_samples(param_names, samples, samples_lnprob, params, model,\
+        ntemps=1, nwalkers=300, nprod=1000, discard=5, sptype=None):
     """
     Get the marginalized parameters from the sample chain
 
@@ -1079,6 +1079,8 @@ def get_fit_params_from_samples(param_names, samples, samples_lnprob, params,\
     params : dict
         A parameter dict such as that produced by
         :py:func:`WDmodel.io.read_params`
+    model : :py:class:`WDmodel.WDmodel.WDmodel` instance
+        The DA White Dwarf SED model generator
     ntemps : int
         The number of temperatures chains were run at. Default is ``1.``
     nwalkers : int
@@ -1090,6 +1092,8 @@ def get_fit_params_from_samples(param_names, samples, samples_lnprob, params,\
     discard : int
         percentage of nprod steps from the start of the chain to discard in
         analyzing samples
+    sptype : string specifying type of spectrum being fit. ``emission`` for
+        lab plasma
 
     Returns
     -------
@@ -1103,11 +1107,27 @@ def get_fit_params_from_samples(param_names, samples, samples_lnprob, params,\
     out_ samples_lnprob : array-like
         The flattened log of the posterior corresponding to the positions in
         ``samples`` with the first ``%discard`` samples tossed.
+    param_names : list
+        names of parameters that were fit for or those derived from fitted
+        parameters, e.g., ``ne``. Names correspond to keys in
+        ``params`` and the order of parameters in ``samples``.
 
     See Also
     --------
     :py:func:`fit_model`
     """
+
+    # if fitting lab plasma emission, add electron density to params to be
+    # passed to plotting routines
+    if sptype == 'emission':
+        indrho = np.squeeze(np.where(param_names == 'logg'))
+        indT = np.squeeze(np.where(param_names == 'teff'))
+        nesamp = model._get_ne(samples[:, indrho], samples[:, indT])
+        samples = np.column_stack((samples, nesamp))
+        param_names = np.append(param_names, 'ne')
+        params['ne'] = {}
+        params['ne']['derived'] = True
+        params['ne']['fixed'] = False
 
     ndim = len(param_names)
 
@@ -1146,4 +1166,4 @@ def get_fit_params_from_samples(param_names, samples, samples_lnprob, params,\
             # this should never happen, unless the state of the files was changed
             message = "Huh.... {} not marked as fixed but was not fit for...".format(param)
             print(message)
-    return params, in_samp[mask,:], in_lnprob[mask]
+    return params, in_samp[mask,:], in_lnprob[mask], param_names
