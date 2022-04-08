@@ -890,7 +890,7 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
         message = "\nMAP Parameters after Burn-in"
         print(message)
         for k, v in lnlike.get_parameter_dict().items():
-            message = "{} = {:f}".format(k,v)
+            message = "{} = {:.4g}".format(k,v)
             print(message)
 
         # set walkers to start production at final burnin state
@@ -1049,7 +1049,7 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
     print(message)
 
     for k, v in lnlike.get_parameter_dict().items():
-        message = "{} = {:f}".format(k,v)
+        message = "{} = {:.4g}".format(k,v)
         print(message)
     message = "Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction))
     print(message)
@@ -1058,6 +1058,7 @@ def fit_model(spec, phot, model, covmodel, pbs, params,\
     # the chain for plotting, and the shape of the chain
     return free_param_names, samples, samples_lnprob, everyn, fullchain, \
         (ntemps, nwalkers, laststep+nprod, nparam)
+
 
 def get_fit_params_from_samples(param_names, samples, samples_lnprob, params,\
         ntemps=1, nwalkers=300, nprod=1000, discard=5):
