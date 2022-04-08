@@ -94,6 +94,7 @@ def main(inargs=None):
 
     specgrid  = args.gridfile
     gridgroup = args.gridname
+    sptype = args.sptype
 
     outdir    = args.outdir
     outroot   = args.outroot
@@ -137,7 +138,7 @@ def main(inargs=None):
     print(message)
 
     # init the model
-    model = WDmodel.WDmodel(grid_file=specgrid, grid_name=gridgroup, rvmodel=rvmodel)
+    model = WDmodel.WDmodel(grid_file=specgrid, grid_name=gridgroup, sptype=sptype, rvmodel=rvmodel)
 
     if not resume:
         # parse the parameter keywords in the argparse Namespace into a dictionary
