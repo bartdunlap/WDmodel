@@ -14,7 +14,8 @@ from . import io
 import extinction
 import scipy.interpolate as spinterp
 from scipy.ndimage.filters import gaussian_filter1d
-from astropy.constants import c as _C
+from astropy.constants import c, h, k_B
+from astropy import units as u
 from six.moves import zip
 
 __all__=['WDmodel']
@@ -265,6 +266,102 @@ class WDmodel(object):
             ``av`` and ``flux`` should be >= 0.
         """
         return extinction.apply(self.extinction(wave, av, rv), flux, inplace=True)
+
+
+    def plancklam(self, wave, T):
+        """
+        Returns the Planck function, B_lambda(T)
+
+        Parameters
+        ----------
+        wave : array-like
+            Array of wavelengths in Angstrom at which to compute extinction,
+            sorted in ascending order
+        T : float
+            Temperature in Kelvin
+
+
+        Returns
+        -------
+        out : array-like
+            The Planck function in erg/s/cm^2/Ang
+
+        Notes
+        -----
+            .
+        """
+
+        wave = (wave*u.Angstrom).to(u.m)
+        T = T*u.K
+        fac1 = 2.*h*(c**2)/(wave**5)
+        fac2 = h*c/(wave*k_B*T)
+        fac2 = fac2.value
+        B_lam = fac1 / (np.exp(fac2) - 1.)
+        B_lam = B_lam.to(u.erg / u.s / u.cm**2 / u.Angstrom)
+        return B_lam.value
+
+
+    def opdepth(self, rho, opac, length):
+        """
+        Returns the optical depth, tau
+
+        Parameters
+        ----------
+        opac : array-like
+            Array of opacities
+        rho : float
+            plasma density (g cm^-3)
+        length : float, optional
+            The plasma length in cm. Default is 12 cm.
+
+
+        Returns
+        -------
+        out : array-like
+            the optical depth
+
+        Notes
+        -----
+            .
+        """
+        return rho*opac*length
+
+
+    def emission(self, wave, opac, rho, T, length=12.):
+        """
+        Uses the blackbody function defined in
+        :py:func:`WDmodel.WDmodel.WDmodel.plancklam` to calculate the
+        emission as a function of wavelength (in Angstroms).
+
+        Parameters
+        ----------
+        wave : array-like
+            Array of wavelengths in Angstrom at which to compute emission
+            spectrum, sorted in ascending order
+        opac : array-like
+            Array of opacities at ``wave``
+        rho : float
+            plasma density (g cm^-3)
+        T : float
+            plasma temperature (K)
+        length : float, optional
+            The plasma length in cm. Default is 12 cm.
+
+        Returns
+        -------
+        out : array-like
+            The emission spectrum
+
+        Notes
+        -----
+           .
+        """
+
+        B_lam = self.plancklam(wave, T)
+        # tau = self.opdepth(rho, opac, length)
+        tau = rho*opac*length
+        emiss = B_lam*(1. - np.exp(-tau))
+        return emiss
 
 
     def _get_model_nosp(self, teff, logg, wave=None, log=False):
