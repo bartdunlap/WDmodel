@@ -487,6 +487,73 @@ class WDmodel(object):
         return (10.**out)
 
 
+    def _get_ne(self, rho, Te):
+        """
+        Returns the electron density, ne, given ``Te`` and ``rho``
+
+        3-D interpolation of model grid. The ne comes from the EOS in tlusty.
+        Uses :py:class:`scipy.interpolate.RectBivariateSpline` to generate the
+        interpolated ne (in e- per cm^3).
+
+        Parameters
+        ----------
+        rho : array_like
+            Desired model density (in g cm^-3)
+        Te : array_like
+            Desired model temperature (in Kelvin)
+
+        Returns
+        -------
+        ne : float
+            Interpolated model ne at ``rho``, ``Te``.
+
+        Notes
+        -----
+            Inputs ``rho`` and ``Te`` must be within the bounds of
+            the grid.  See :py:attr:`WDmodel.WDmodel.WDmodel._negrid`,
+            :py:attr:`WDmodel.WDmodel.WDmodel._ggrid`,
+            :py:attr:`WDmodel.WDmodel.WDmodel._tgrid`, for grid locations and
+            limits. rho is stored in ggrid; Te in tgrid
+        """
+        out = self._splrhoT_ne(rho, Te, grid=False)
+        return out
+
+
+    def _get_emiss_model(self, teff, logg, wave, length=12., log=False):
+        """
+        Returns the emission model flux given ``teff``, ``rho`` at
+        wavelengths ``wave``
+
+        Uses :py:func:`WDmodel.WDmodel.WDmodel._get_model` to get the
+        model opacities, and converts to emission with
+        :py:func:`WDmodel.WDmodel.WDmodel.emission`
+
+        Parameters
+        ----------
+        teff : float
+            Desired model white dwarf atmosphere temperature (in Kelvin)
+        logg : float
+            Desired model white dwarf atmosphere surface gravity (in dex)
+        wave : array-like
+            Desired wavelengths at which to compute the model atmosphere flux.
+        log : bool, optional
+            Return the log10 flux, rather than the flux (what's actually interpolated)
+
+        Returns
+        -------
+        flux : array-like
+            Interpolated model flux at ``teff``, ``logg`` with reddening parametrized
+            by ``av``, ``rv`` at wavelengths ``wave``
+        """
+        mod = self._get_model(teff, logg, wave, log=log)
+        if log:
+            mod = 10.**mod
+        mod = self.emission(wave, mod, logg, teff, length)
+        if log:
+            mod = np.log10(mod)
+        return mod
+
+
     def _get_red_model(self, teff, logg, av, wave, rv=3.1, log=False):
         """
         Returns the reddened model flux given ``teff``, ``logg``, ``av``, ``rv`` at
