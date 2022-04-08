@@ -141,6 +141,11 @@ class WDmodel(object):
         self._model = spinterp.RegularGridInterpolator((self._tgrid, self._ggrid),\
                 self._lflux)
 
+        # interpolation to get ne from rho (ggrid) and T (tgrid)
+        if grid_file == 'TlustyPlasmaGrids.hdf5':
+            self._negrid[0, 99] = 1.606e17  # approx correcting errant point in grid
+            self._splrhoT_ne = spinterp.RectBivariateSpline(self._ggrid, self._tgrid, self._negrid)
+
 
     def __init__rvmodel(self, rvmodel='f99'):
         if rvmodel == 'ccm89':
