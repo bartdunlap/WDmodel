@@ -108,7 +108,7 @@ class WDmodel(object):
         overhead of the public methods.
     """
 
-    def __init__(self, grid_file=None, grid_name=None, rvmodel='f99'):
+    def __init__(self, grid_file=None, grid_name=None, sptype=None, rvmodel='f99'):
         lno     = [   1    ,   2     ,    3     ,    4    ,   5      ,  6      ]
         lines   = ['alpha' , 'beta'  , 'gamma'  , 'delta' , 'epsilon', 'zeta'  ]
         H       = [6562.857, 4861.346, 4340.478 ,4101.745 , 3970.081 , 3889.056]
@@ -117,15 +117,19 @@ class WDmodel(object):
         self._lines = dict(list(zip(lno, list(zip(lines, H, D, eps)))))
         # we're passing grid_file so we know which model to init
         self._fwhm_to_sigma = np.sqrt(8.*np.log(2.))
+        self._sptype = sptype
         self.__init__tlusty(grid_file=grid_file, grid_name=grid_name)
         self.__init__rvmodel(rvmodel=rvmodel)
 
 
     def __init__tlusty(self, grid_file=None, grid_name=None):
         ingrid = io.read_model_grid(grid_file, grid_name)
-        self._grid_file, self._grid_name, self._wave, self._ggrid, self._tgrid, _flux = ingrid
+        self._grid_file, self._grid_name, self._wave, self._ggrid, self._tgrid, _flux, self._negrid = ingrid
         self._lwave = np.log10(self._wave, dtype=np.float64)
-        self._lflux = np.log10(_flux.T)
+        if self._sptype == 'emission':
+            self._lflux = _flux.T*np.log10(np.e)  # file opacities are ln opacity
+        else:
+            self._lflux = np.log10(_flux.T)
         self._ntemp = len(self._tgrid)
         self._ngrav = len(self._ggrid)
         self._nwave = len(self._wave)
