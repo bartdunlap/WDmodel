@@ -140,6 +140,9 @@ def main(inargs=None):
     # init the model
     model = WDmodel.WDmodel(grid_file=specgrid, grid_name=gridgroup, sptype=sptype, rvmodel=rvmodel)
 
+    # get labels dict for plots
+    labels = viz.get_plot_labels(sptype=sptype)
+
     if not resume:
         # parse the parameter keywords in the argparse Namespace into a dictionary
         params = io.get_params_from_argparse(args)
@@ -226,7 +229,7 @@ def main(inargs=None):
 
             # save the minuit fit result - this will not be perfect, but if it's bad, refine starting position
             viz.plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor,\
-                model, migrad_params, save=True)
+                model, migrad_params, labels, save=True)
         else:
             # we didn't run minuit, so we'll assume the user intended to start us at some specific position
             migrad_params = io.copy_params(params)
@@ -285,14 +288,14 @@ def main(inargs=None):
 
         # plot the MCMC chains (burnin + production)
         viz.plot_chains(param_names, fullchain, nburnin, objname, outdir,
-                            specfile, savechains=savechains) 
+                            specfile, labels, savechains=savechains) 
 
         # plot the MCMC output
         plot_out = viz.plot_mcmc_model(spec, phot, linedata,\
                     scale_factor, phot_dispersion,\
                     objname, outdir, specfile,\
                     model, covmodel, cont_model, pbs,\
-                    mcmc_params, param_names, in_samp, in_lnprob,\
+                    mcmc_params, param_names, in_samp, in_lnprob, labels,\
                     covtype=covtype, balmer=balmer,\
                     ndraws=ndraws, everyn=everyn, savefig=savefig)
         model_spec, full_mod, model_mags = plot_out

@@ -23,15 +23,21 @@ from six.moves import range
 from collections import OrderedDict
 
 
-def get_plot_labels():
+def get_plot_labels(sptype=None):
     """
     Generate dictionary of fit parameter labels for plots.
+
+    Parameters
+    ----------
+    sptype : str, optional
+        Type of spectrum being fit.
 
     Returns
     -------
     labels : dict
         dictionary of plot labels with :py:const:`WDmodel.io._PARAMETER_NAMES`
-        as keys
+        as keys.  If ``sptype`` is ``emission``, ``logg`` and ``teff`` labels
+        are set to ``rho`` and ``T``, and ``ne`` is added to dictionary.
     """
     labelnames = (r'$T_{\mathrm{eff}}$', r'$\log\,g$', r'$A_{V}$', r'$R_{V}$',
                 'dl', 'fwhm', r'$f_{\sigma}$', r'$\tau$', r'$f_{\omega}$',
@@ -39,10 +45,14 @@ def get_plot_labels():
     labels = OrderedDict()
     for i, par in enumerate(io._PARAMETER_NAMES):
         labels[par] = labelnames[i]
+    if sptype == 'emission':
+        labels['teff'] = 'T'
+        labels['logg'] = r'$\rho$'
+        labels['ne'] = 'ne'
     return labels
 
 
-def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, model, result, save=True):
+def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, model, result, labels, save=True):
     """
     Plot the MLE fit of the spectrum with the model, assuming uncorrelated
     noise.
@@ -66,6 +76,9 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
         dictionary of parameters with keywords ``value``, ``fixed``, ``scale``,
         ``bounds`` for each. Same format as returned from
         :py:func:`WDmodel.io.read_params`
+    labels : dict
+        dictionary of plot labels with :py:const:`WDmodel.io._PARAMETER_NAMES`
+        as keys.  see :py:func:`WDmodel.viz.get_plot_labels` 
     save : bool
         if True, save the file
 
@@ -85,8 +98,6 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
     font_m  = FM(size='medium', family='serif')
     font_l  = FM(size='large', family='serif')
     plt.rcParams.update({'font.family':'serif'})
-
-    labels = get_plot_labels()
 
     fig = plt.figure(figsize=(10,8))
     gs = gridspec.GridSpec(2, 1, height_ratios=[4,1])
@@ -160,8 +171,9 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
     return fig
 
 
-def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model, covmodel, result, param_names, samples,\
-        ndraws=21, everyn=1):
+def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model,
+                           covmodel, result, param_names, samples, labels,
+                           ndraws=21, everyn=1):
     """
     Plot the spectrum of the DA White Dwarf and the "best fit" model
 
@@ -198,6 +210,9 @@ def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model, covmode
         Ordered list of free parameter names
     samples : array-like
         Samples from the flattened Markov Chain with shape ``(N, len(param_names))``
+    labels : dict
+        dictionary of plot labels with :py:const:`WDmodel.io._PARAMETER_NAMES`
+        as keys.  see :py:func:`WDmodel.viz.get_plot_labels` 
     ndraws : int, optional
         Number of draws to make from the Markov Chain to overplot. Higher
         numbers provide a better sense of the uncertainty in the model at the
@@ -234,8 +249,6 @@ def plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor, model, covmode
     font_s  = FM(size='small')
     font_m  = FM(size='medium')
     font_l  = FM(size='large')
-
-    labels = get_plot_labels()
 
     fig = plt.figure(figsize=(10,8))
     gs = gridspec.GridSpec(2, 1, height_ratios=[4,1])
@@ -711,7 +724,7 @@ def plot_mcmc_line_fit(spec, linedata, model, cont_model, draws, balmer=None):
     return fig, fig2
 
 
-def plot_chains(param_names, fullchain, nburnin, objname, outdir, specfile, savechains=True):
+def plot_chains(param_names, fullchain, nburnin, objname, outdir, specfile, labels, savechains=True):
     """
     Plot the chains to visually check convergance.
 
@@ -729,6 +742,9 @@ def plot_chains(param_names, fullchain, nburnin, objname, outdir, specfile, save
         controls where the plot is written
     specfile : str
         Used in the title, and to set the name of the ``outfile``
+    labels : dict
+        dictionary of plot labels with :py:const:`WDmodel.io._PARAMETER_NAMES`
+        as keys.  see :py:func:`WDmodel.viz.get_plot_labels` 
     savechains : bool
         if True, save the figure
 
@@ -740,8 +756,6 @@ def plot_chains(param_names, fullchain, nburnin, objname, outdir, specfile, save
     """
     nparam = len(param_names)
     xlen = len(fullchain[0, :, 0])
-    labels = get_plot_labels()
-
 
     fig, axes = plt.subplots(nparam, figsize=(8, 11), sharex=True)
     for i in range(nparam):
@@ -770,7 +784,7 @@ def plot_chains(param_names, fullchain, nburnin, objname, outdir, specfile, save
 def plot_mcmc_model(spec, phot, linedata, scale_factor, phot_dispersion,\
         objname, outdir, specfile,\
         model, covmodel, cont_model, pbs,\
-        params, param_names, samples, samples_lnprob,\
+        params, param_names, samples, samples_lnprob, labels,\
         covtype='Matern32', balmer=None, ndraws=21, everyn=1, savefig=False):
     """
     Make all the plots to visualize the full fit of the DA White Dwarf data
@@ -826,6 +840,9 @@ def plot_mcmc_model(spec, phot, linedata, scale_factor, phot_dispersion,\
     samples_lnprob : array-like
         Log Posterior corresponding to ``samples`` from the flattened Markov
         Chain with shape ``(N,)``
+    labels : dict
+        dictionary of plot labels with :py:const:`WDmodel.io._PARAMETER_NAMES`
+        as keys.  see :py:func:`WDmodel.viz.get_plot_labels` 
     covtype : ``{'Matern32', 'SHO', 'Exp', 'White'}``
         stationary kernel type used to parametrize the covariance in
         :py:class:`WDmodel.covariance.WDmodel_CovModel`
@@ -861,13 +878,11 @@ def plot_mcmc_model(spec, phot, linedata, scale_factor, phot_dispersion,\
     draws     = None
     mag_draws = None
 
-    labels = get_plot_labels()
-
     outfilename = io.get_outfile(outdir, specfile, '_mcmc.pdf')
     with PdfPages(outfilename) as pdf:
         # plot spectrum and model
         fig, draws  =  plot_mcmc_spectrum_fit(spec, objname, specfile, scale_factor,\
-                model, covmodel, params, param_names, samples,\
+                model, covmodel, params, param_names, samples, labels,\
                 ndraws=ndraws, everyn=everyn)
         if savefig:
             outfile = io.get_outfile(outdir, specfile, '_mcmc_spectrum.pdf')
