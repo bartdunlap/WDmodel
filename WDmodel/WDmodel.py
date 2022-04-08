@@ -596,7 +596,7 @@ class WDmodel(object):
         return mod
 
 
-    def _get_obs_model(self, teff, logg, av, fwhm, wave, shift, rvel, rv=3.1, log=False, pixel_scale=1.):
+    def _get_obs_model(self, teff, logg, av, fwhm, wave, shift, rvel, rv=3.1, log=False, pixel_scale=1., length=12.):
         """
         Returns the observed model flux given ``teff``, ``logg``, ``av``, ``rv``,
         ``fwhm`` (for Gaussian instrumental broadening) and wavelengths ``wave``
@@ -636,6 +636,8 @@ class WDmodel(object):
             spectral reduction packages resample the spectrum onto a uniform
             wavelength scale that is close to the native pixel scale of the
             spectrograph. Default is ``1.``
+        length : float, optional
+            Length of plasma used to compute plasma spectrum. Default is ``12.``
 
         Returns
         -------
@@ -653,11 +655,13 @@ class WDmodel(object):
             ``shift`` is a zero-point wavelength shift. Not a velocity shift.
 
         """
-        wave = wave*(1. - rvel*1000./_C.value) - shift
+        wave = wave*(1. - rvel*1000./c.value) - shift
         mod = self._get_model(teff, logg, wave, log=log)
         if log:
             mod = 10.**mod
         mod = self.reddening(wave, mod, av, rv=rv)
+        if self._sptype == 'emission':
+            mod = self.emission(wave, mod, logg, teff, length)
         gsig = fwhm/self._fwhm_to_sigma * pixel_scale
         mod = gaussian_filter1d(mod, gsig, order=0, mode='nearest')
         if log:
@@ -665,7 +669,7 @@ class WDmodel(object):
         return mod
 
 
-    def _get_full_obs_model(self, teff, logg, av, fwhm, wave, shift, rvel, rv=3.1, log=False, pixel_scale=1.):
+    def _get_full_obs_model(self, teff, logg, av, fwhm, wave, shift, rvel, rv=3.1, log=False, pixel_scale=1., length=12.):
         """
         Returns the observed model flux given ``teff``, ``logg``, ``av``, ``rv``,
         ``fwhm`` (for Gaussian instrumental broadening) at wavelengths, ``wave`` as
@@ -711,6 +715,8 @@ class WDmodel(object):
             spectral reduction packages resample the spectrum onto a uniform
             wavelength scale that is close to the native pixel scale of the
             spectrograph. Default is ``1.``
+        length : float, optional
+            Length of plasma used to compute plasma spectrum. Default is ``12.``
 
         Returns
         -------
@@ -739,9 +745,11 @@ class WDmodel(object):
             correcting for instrumental/reduction artifacts, however, should not
             be applied to the model photometry, but it currently is.
         """
-        wave = wave*(1. - rvel*1000./_C.value) - shift
+        wave = wave*(1. - rvel*1000./c.value) - shift
         mod  = self._get_model(teff, logg)
         mod  = self.reddening(self._wave, mod, av, rv=rv)
+        if self._sptype == 'emission':
+            mod = self.emission(wave, mod, logg, teff, length)
         omod = np.interp(np.log10(wave), self._lwave, np.log10(mod))
         omod = 10.**omod
         gsig = fwhm/self._fwhm_to_sigma * pixel_scale
@@ -750,7 +758,7 @@ class WDmodel(object):
             omod = np.log10(omod)
             mod  = np.log10(mod)
         names=str('wave,flux')
-        wout = self._wave*(1. + rvel*1000./_C.value) + shift
+        wout = self._wave*(1. + rvel*1000./c.value) + shift
         mod = np.rec.fromarrays((wout, mod), names=names)
         return omod, mod
 
