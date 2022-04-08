@@ -108,7 +108,7 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
         facecolor='grey', alpha=0.5, interpolate=True)
     ax_spec.plot(spec.wave, spec.flux, color='black', linestyle='-', marker='None', label=specfile)
 
-    print_params = ('teff', 'logg', 'av', 'dl', 'shift')
+    print_params = ('teff', 'logg', 'av', 'dl', 'shift', 'length')
     outlabel = 'Model\n'
     for param in print_params:
         val = result[param]['value']
@@ -117,10 +117,10 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
         if val is None:
             thislabel = '{} = {} '.format(labels[param], val)
         else:
-            thislabel = '{} = {:.3f} '.format(labels[param], val)
+            thislabel = '{} = {:.4g} '.format(labels[param], val)
 
         if not fixed:
-            thislabel += ' +/- {:.3f}'.format(err)
+            thislabel += ' +/- {:.3g}'.format(err)
         else:
             thislabel = '[{} FIXED]'.format(thislabel)
         thislabel +='\n'
@@ -132,7 +132,7 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
         if val is None:
             thislabel = '{} = {} '.format(labels[param], val)
         else:
-            thislabel = '{} = {:.3f} '.format(labels[param], val)
+            thislabel = '{} = {:.4g} '.format(labels[param], val)
         thislabel = '[{} FIXED]'.format(thislabel)
         thislabel +='\n'
         outlabel += thislabel
@@ -144,12 +144,13 @@ def plot_minuit_spectrum_fit(spec, objname, outdir, specfile, scale_factor, mode
     rv   = result['rv']['value']
     fwhm = result['fwhm']['value']
     shift = result['shift']['value']
-    rvel = result['rvel']['value']  
+    rvel = result['rvel']['value']
+    length = result['length']['value']
 
     pixel_scale = 1./np.median(np.gradient(spec.wave))
 
     mod = model._get_obs_model(teff, logg, av, fwhm, spec.wave, shift, rvel,
-                               rv=rv, pixel_scale=pixel_scale)
+                               rv=rv, pixel_scale=pixel_scale, length=length)
     smoothedmod = mod* (1./(4.*np.pi*(dl)**2.))
 
     ax_spec.plot(spec.wave, smoothedmod, color='red', linestyle='-',marker='None', label=outlabel)
