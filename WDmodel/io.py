@@ -22,7 +22,7 @@ import h5py
 from six.moves import range
 
 # Declare this tuple to init the likelihood model, and to preserve order of parameters
-_PARAMETER_NAMES = ("teff", "logg", "av", "rv", "dl", "fwhm", "fsig", "tau", "fw", "mu", "shift", "rvel")
+_PARAMETER_NAMES = ("teff", "logg", "av", "rv", "dl", "fwhm", "fsig", "tau", "fw", "mu", "shift", "rvel", "length")
 
 
 def get_options(args, comm):
@@ -121,6 +121,8 @@ def get_options(args, comm):
             help="Specify grid of model spectra")
     specgrid.add_argument('--gridname', required=False, default=None,\
             help='Specify name of the group name in the HDF5 file')
+    specgrid.add_argument('--sptype', required=False, default=None,\
+            help='Specify type of spectrum, e.g., "emission"')
     
     # photometry options
     reddeninglaws = ('od94', 'ccm89', 'f99', 'custom')
@@ -523,6 +525,8 @@ def read_model_grid(grid_file=None, grid_name=None):
     flux : array-like
         The DA white dwarf model atmosphere flux array of the grid.
         Has shape ``(nwave, ngrav, ntemp)``
+    negrid : array-like
+        The electron density array
 
     Notes
     -----
@@ -538,6 +542,7 @@ def read_model_grid(grid_file=None, grid_name=None):
         grid_file = 'TlustyGrids.hdf5'
 
     # if the user specfies a file, check that it exists, and if not look inside the package directory
+    grid_file_name = grid_file
     if not os.path.exists(grid_file):
         grid_file = get_pkgfile(grid_file)
     
@@ -569,8 +574,12 @@ def read_model_grid(grid_file=None, grid_name=None):
         ggrid = grid['ggrid'].value.astype('float64')
         tgrid = grid['tgrid'].value.astype('float64')
         flux  = grid['flux'].value.astype('float64')
+        if grid_file_name == 'TlustyPlasmaGrids.hdf5':
+            negrid = grid['negrid'].value.astype('float64')
+        else:
+            negrid = None
 
-    return grid_file, grid_name, wave, ggrid, tgrid, flux
+    return grid_file, grid_name, wave, ggrid, tgrid, flux, negrid
 
 
 def _read_ascii(filename, **kwargs):
