@@ -48,7 +48,7 @@ def get_plot_labels(sptype=None):
     if sptype == 'emission':
         labels['teff'] = 'T'
         labels['logg'] = r'$\rho$'
-        labels['ne'] = 'ne'
+        labels['ne'] = r'$n_{\mathrm{e}}$'
     return labels
 
 
@@ -923,7 +923,10 @@ def plot_mcmc_model(spec, phot, linedata, scale_factor, phot_dispersion,\
 
         # plot corner plot
         labelfree = [labels.get(k) for k in param_names]
-        fig = corner.corner(samples, bins=51, labels=labelfree, show_titles=True,quantiles=(0.16,0.84), smooth=1.)
+        labelfree.append(labels['ne'])
+        fig = corner.corner(samples, bins=51, labels=labelfree,
+                            show_titles=True, quantiles=(0.16,0.84), smooth=1.,
+                            title_fmt='.5g')
         if savefig:
             outfile = io.get_outfile(outdir, specfile, '_mcmc_corner.pdf')
             fig.savefig(outfile)
