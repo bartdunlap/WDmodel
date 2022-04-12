@@ -41,7 +41,7 @@ def get_plot_labels(sptype=None):
     """
     labelnames = (r'$T_{\mathrm{eff}}$', r'$\log\,g$', r'$A_{V}$', r'$R_{V}$',
                 'dl', 'fwhm', r'$f_{\sigma}$', r'$\tau$', r'$f_{\omega}$',
-                r'$\mu$', 'shift', r'$v_{r}$')
+                r'$\mu$', 'shift', r'$v_{r}$', 'length')
     labels = OrderedDict()
     for i, par in enumerate(io._PARAMETER_NAMES):
         labels[par] = labelnames[i]
