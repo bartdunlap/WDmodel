@@ -749,7 +749,7 @@ class WDmodel(object):
         mod  = self._get_model(teff, logg)
         mod  = self.reddening(self._wave, mod, av, rv=rv)
         if self._sptype == 'emission':
-            mod = self.emission(wave, mod, logg, teff, length)
+            mod = self.emission(self._wave, mod, logg, teff, length)
         omod = np.interp(np.log10(wave), self._lwave, np.log10(mod))
         omod = 10.**omod
         gsig = fwhm/self._fwhm_to_sigma * pixel_scale
