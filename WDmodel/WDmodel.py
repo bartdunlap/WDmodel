@@ -327,17 +327,18 @@ class WDmodel(object):
         return rho*opac*length
 
 
-    def emission(self, wave, opac, rho, T, length=12.):
+    def plasma(self, wave, opac, rho, T, length=12.):
         """
-        Uses the blackbody function defined in
-        :py:func:`WDmodel.WDmodel.WDmodel.plancklam` to calculate the
+        Uses opacity grid to calculate transmission or, along with the
+        blackbody function defined in
+        :py:func:`WDmodel.WDmodel.WDmodel.plancklam`, calculates the
         emission as a function of wavelength (in Angstroms).
 
         Parameters
         ----------
         wave : array-like
-            Array of wavelengths in Angstrom at which to compute emission
-            spectrum, sorted in ascending order
+            Array of wavelengths in Angstrom at which to compute emission or
+            transmission spectrum, sorted in ascending order
         opac : array-like
             Array of opacities at ``wave``
         rho : float
@@ -350,7 +351,7 @@ class WDmodel(object):
         Returns
         -------
         out : array-like
-            The emission spectrum
+            The emission or transmission spectrum
 
         Notes
         -----
@@ -553,7 +554,7 @@ class WDmodel(object):
         mod = self._get_model(teff, logg, wave, log=log)
         if log:
             mod = 10.**mod
-        mod = self.emission(wave, mod, logg, teff, length)
+        mod = self.plasma(wave, mod, logg, teff, length)
         if log:
             mod = np.log10(mod)
         return mod
@@ -666,7 +667,7 @@ class WDmodel(object):
             mod = 10.**mod
         mod = self.reddening(wave, mod, av, rv=rv)
         if self._sptype in ('emission', 'transmission'):
-            mod = self.emission(wave, mod, logg, teff, length)
+            mod = self.plasma(wave, mod, logg, teff, length)
         gsig = fwhm/self._fwhm_to_sigma * pixel_scale
         mod = gaussian_filter1d(mod, gsig, order=0, mode='nearest')
         if log:
@@ -754,7 +755,7 @@ class WDmodel(object):
         mod  = self._get_model(teff, logg)
         mod  = self.reddening(self._wave, mod, av, rv=rv)
         if self._sptype in ('emission', 'transmission'):
-            mod = self.emission(self._wave, mod, logg, teff, length)
+            mod = self.plasma(self._wave, mod, logg, teff, length)
         omod = np.interp(np.log10(wave), self._lwave, np.log10(mod))
         omod = 10.**omod
         gsig = fwhm/self._fwhm_to_sigma * pixel_scale
