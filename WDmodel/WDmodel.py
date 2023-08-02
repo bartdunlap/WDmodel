@@ -127,7 +127,7 @@ class WDmodel(object):
         ingrid = io.read_model_grid(grid_file, grid_name)
         self._grid_file, self._grid_name, self._wave, self._ggrid, self._tgrid, _flux, self._negrid = ingrid
         self._lwave = np.log10(self._wave, dtype=np.float64)
-        if self._sptype == 'emission':
+        if self._sptype in ('emission', 'transmission'):
             self._lflux = _flux.T*np.log10(np.e)  # file opacities are ln opacity
         else:
             self._lflux = np.log10(_flux.T)
@@ -357,12 +357,17 @@ class WDmodel(object):
            .
         """
 
-        B_lam = self.plancklam(wave, T)
         # tau = self.opdepth(rho, opac, length)
         tau = rho*opac*length
-        emiss = B_lam*(1. - np.exp(-tau))
-        return emiss
+        trans = np.exp(-tau)
 
+        if self._sptype == 'transmission':
+            return trans
+
+        B_lam = self.plancklam(wave, T)
+        emiss = B_lam*(1. - trans)
+
+        return emiss
 
     def _get_model_nosp(self, teff, logg, wave=None, log=False):
         """
@@ -660,7 +665,7 @@ class WDmodel(object):
         if log:
             mod = 10.**mod
         mod = self.reddening(wave, mod, av, rv=rv)
-        if self._sptype == 'emission':
+        if self._sptype in ('emission', 'transmission'):
             mod = self.emission(wave, mod, logg, teff, length)
         gsig = fwhm/self._fwhm_to_sigma * pixel_scale
         mod = gaussian_filter1d(mod, gsig, order=0, mode='nearest')
@@ -748,7 +753,7 @@ class WDmodel(object):
         wave = wave*(1. - rvel*1000./c.value) - shift
         mod  = self._get_model(teff, logg)
         mod  = self.reddening(self._wave, mod, av, rv=rv)
-        if self._sptype == 'emission':
+        if self._sptype in ('emission', 'transmission'):
             mod = self.emission(self._wave, mod, logg, teff, length)
         omod = np.interp(np.log10(wave), self._lwave, np.log10(mod))
         omod = 10.**omod
