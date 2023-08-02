@@ -1092,8 +1092,8 @@ def get_fit_params_from_samples(param_names, samples, samples_lnprob, params, mo
     discard : int
         percentage of nprod steps from the start of the chain to discard in
         analyzing samples
-    sptype : string specifying type of spectrum being fit. ``emission`` for
-        lab plasma
+    sptype : string specifying type of spectrum being fit. ``emission`` or
+        ``transmission`` for lab plasma
 
     Returns
     -------
@@ -1117,9 +1117,9 @@ def get_fit_params_from_samples(param_names, samples, samples_lnprob, params, mo
     :py:func:`fit_model`
     """
 
-    # if fitting lab plasma emission, add electron density to params to be
+    # if fitting lab plasma, add electron density to params to be
     # passed to plotting routines
-    if sptype == 'emission':
+    if sptype in ('emission', 'transmission'):
         indrho = np.squeeze(np.where(param_names == 'logg'))
         indT = np.squeeze(np.where(param_names == 'teff'))
         nesamp = model._get_ne(samples[:, indrho], samples[:, indT])

@@ -122,7 +122,7 @@ def get_options(args, comm):
     specgrid.add_argument('--gridname', required=False, default=None,\
             help='Specify name of the group name in the HDF5 file')
     specgrid.add_argument('--sptype', required=False, default=None,\
-            help='Specify type of spectrum, e.g., "emission"')
+            help='Specify type of spectrum, e.g., "emission" or "transmission"')
     
     # photometry options
     reddeninglaws = ('od94', 'ccm89', 'f99', 'custom')

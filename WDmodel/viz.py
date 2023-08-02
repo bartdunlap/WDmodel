@@ -36,8 +36,9 @@ def get_plot_labels(sptype=None):
     -------
     labels : dict
         dictionary of plot labels with :py:const:`WDmodel.io._PARAMETER_NAMES`
-        as keys.  If ``sptype`` is ``emission``, ``logg`` and ``teff`` labels
-        are set to ``rho`` and ``T``, and ``ne`` is added to dictionary.
+        as keys.  If ``sptype`` is ``emission`` or ``transmission``, ``logg``
+        and ``teff`` labels are set to ``rho`` and ``T``, and ``ne`` is added
+        to dictionary.
     """
     labelnames = (r'$T_{\mathrm{eff}}$', r'$\log\,g$', r'$A_{V}$', r'$R_{V}$',
                 'dl', 'fwhm', r'$f_{\sigma}$', r'$\tau$', r'$f_{\omega}$',
@@ -45,7 +46,7 @@ def get_plot_labels(sptype=None):
     labels = OrderedDict()
     for i, par in enumerate(io._PARAMETER_NAMES):
         labels[par] = labelnames[i]
-    if sptype == 'emission':
+    if sptype in ('emission', 'transmission'):
         labels['teff'] = 'T'
         labels['logg'] = r'$\rho$'
         labels['ne'] = r'$n_{\mathrm{e}}$'
