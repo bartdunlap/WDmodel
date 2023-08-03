@@ -353,7 +353,7 @@ def main(inargs=None):
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--rhol',  required=False, type=float, default=2.7e-7,
+    parser.add_argument('--rhol',  required=False, type=float, default=5.2e-9,
                         help="density (in g/cm^3) lower bound for output grid")
     parser.add_argument('--rhoh',  required=False, type=float, default=2.48e-6,
                         help="density (in g/cm^3) upper bound for output grid")
@@ -365,15 +365,15 @@ def main(inargs=None):
                         help="directory containing file with Tlusty "
                         "slab mode opacities")
     parser.add_argument('--infile',  required=False, type=str,
-                        default='ht4_lemke.dat',
+                        default='ht4_lemke_ext_dens.dat',
                         help="filename with opacity data")
-    parser.add_argument('--wvl',  required=False, type=float, default=2800.,
+    parser.add_argument('--wvl',  required=False, type=float, default=3500.,
                         help="Lower bound for output grid wavelength "
                         "(in Angstroms)")
-    parser.add_argument('--wvh',  required=False, type=float, default=5800.,
+    parser.add_argument('--wvh',  required=False, type=float, default=5300.,
                         help="Upper bound for output grid wavelength "
                         "(in Angstroms)")
-    parser.add_argument('--dwv',  required=False, type=float, default=1.0,
+    parser.add_argument('--dwv',  required=False, type=float, default=.5,
                         help="Wavelength spacing (in Angstroms) for "
                         "output grid")
     parser.add_argument('--outfile',  required=False, type=str,
