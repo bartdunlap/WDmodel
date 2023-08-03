@@ -176,7 +176,7 @@ def getPlasmaGrid(opacdir='.', infile='', rhol=None, rhoh=None, Tl=None, Th=None
 
     t_vec = np.exp(lt_vec)       # The vector of temperatures (in K)
     rho_vec = np.exp(lrho_vec)   # The vector of densities (in g/cm^3)
-    n_e_vec = np.exp(ln_e_vec).reshape((100, 10)).T   # The array (Nden, Ntemp) of electron densities (in electrons/cm^3)
+    n_e_vec = np.exp(ln_e_vec).reshape((Ntemp, Nden)).T   # The array (Nden, Ntemp) of electron densities (in electrons/cm^3)
 
     rhomin = np.min(rho_vec)
     rhomax = np.max(rho_vec)
