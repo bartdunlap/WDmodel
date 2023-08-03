@@ -407,6 +407,15 @@ def main(inargs=None):
         opacdir=opacdir, infile=infile, rhol=rhol, rhoh=rhoh, Tl=Tl, Th=Th,
         wvl=wvl, wvh=wvh, dwv=dwv)
 
+    # The ne value of the lowest density (0), highest temp (-1) point is
+    # obviously wrong. This is an interpolated value to fix that, but this
+    # will only be correct for a grid where the highest temp is 30000 and the
+    # lowest density is rho = 5.25e-9. This is probably a problem with writing
+    # writing out the synspec slab mode file since with the smaller grid the
+    # bad point was still at the lowest density, highest temp, even though this
+    # was a different density.
+    nev[0,-1] = 3.09799592e15
+
     if write & (fsz > 500.):
         message = 'Would you like to proceed with writing file to disk? (y/n) '
         if input(message).lower() != 'y':
