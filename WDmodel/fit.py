@@ -1119,10 +1119,20 @@ def get_fit_params_from_samples(param_names, samples, samples_lnprob, params, mo
 
     # if fitting lab plasma, add electron density to params to be
     # passed to plotting routines
+    # need to handle case where ne and Te are both fixed
     if sptype in ('emission', 'transmission'):
         indrho = np.squeeze(np.where(param_names == 'logg'))
         indT = np.squeeze(np.where(param_names == 'teff'))
-        nesamp = model._get_ne(samples[:, indrho], samples[:, indT])
+        if indT.size == 0:
+            Tefixed = params['teff']['value']
+            Te_arr = np.full(samples.shape[0], Tefixed)
+        else:
+            Te_arr = samples[:, indT]
+        # print('samplesshape', samples.shape)
+        # print('indT', indT)
+        # print('indrho', indrho)
+        # print('samples[:, indT]', samples[:, indT])
+        nesamp = model._get_ne(samples[:, indrho], Te_arr)
         samples = np.column_stack((samples, nesamp))
         param_names = np.append(param_names, 'ne')
         params['ne'] = {}
