@@ -113,7 +113,9 @@ class WDmodel(object):
         lno     = [   1    ,   2     ,    3     ,    4    ,   5      ,  6      ]
         lines   = ['alpha' , 'beta'  , 'gamma'  , 'delta' , 'epsilon', 'zeta'  ]
         H       = [6562.857, 4861.346, 4340.478 ,4101.745 , 3970.081 , 3889.056]
-        D       = [ 130.0  ,  170.0  ,  125.0   ,  75.0   ,   50.0   ,   27.0  ]
+        # D       = [ 130.0  ,  170.0  ,  125.0   ,  75.0   ,   50.0   ,   27.0  ]
+        D       = [ 130.0  ,  130.0  ,  97.0   ,  75.0   ,   50.0   ,   27.0  ]
+
         eps     = [  10.0  ,   10.0  ,   10.0   ,   8.0   ,    5.0   ,    3.0  ]
         self._lines = dict(list(zip(lno, list(zip(lines, H, D, eps)))))
         # we're passing grid_file so we know which model to init
@@ -520,6 +522,14 @@ class WDmodel(object):
             :py:attr:`WDmodel.WDmodel.WDmodel._tgrid`, for grid locations and
             limits. rho is stored in ggrid; Te in tgrid
         """
+
+        # # Handle scalar or array input
+        # Te = np.asarray(Te)
+        # if Te.ndim == 0:
+        #     print('It was a SCALAR!!')
+        #     Teval = Te.item()
+        #     Te = np.full(len(rho), Teval)
+
         out = self._splrhoT_ne(rho, Te, grid=False)
         return out
 
